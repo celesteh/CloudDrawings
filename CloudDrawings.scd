@@ -16,9 +16,14 @@ s.waitForBoot({
 	filt = Group(s, 'addToTail');
 	control = Group(s, 'addToTail');
 
-	nano = NanoKontrol2.new;
+	\NanoKontrol2.asClass.notNil.if({
+		nano = NanoKontrol2.new;
+	});
 	notify = { |message|
-		("notify-send -t 10 '" + "CloudDrawings" + "' '"++ message ++ "'").unixCmd(postOutput:false);
+		Platform.case(
+			    \linux,     {
+				("notify-send -t 10 '" + "CloudDrawings" + "' '"++ message ++ "'").unixCmd(postOutput:false);
+		})
 	};
 
 	SynthDef( "sinedbGrains", { arg out = 0, pan = 0, highfreq = 2000, lowfreq = 200,
@@ -560,9 +565,11 @@ s.waitForBoot({
 		Button(window, Rect (20, (20 + (index * 40)), 300, 30)).states_([[item.first, Color.black, Color.clear]])
 		.action_(item.last);
 
-		nano.setAction(("sBt"++(index+1)).asSymbol, {
-			item.last.value;
-			notify.(item.first);
+		nano.notNil.if({
+			nano.setAction(("sBt"++(index+1)).asSymbol, {
+				item.last.value;
+				notify.(item.first);
+			});
 		});
 	});
 
@@ -610,10 +617,11 @@ s.waitForBoot({
 	window.front;
 	window.alwaysOnTop = true;
 
-	nano.setAction(\playBt, {|v| (v!=0).if({ AppClock.sched(0, {scribble.play; nil;}); }); });
-	nano.setAction(\stopBt, {|v| (v!=0).if({ AppClock.sched(0, {scribble.stop; nil;}); }); });
-	nano.setAction(\ffwBt, { |v| (v!=0).if({ AppClock.sched(0, {scribble.grow; nil;}); }); });
-
+	nano.notNil.if({
+		nano.setAction(\playBt, {|v| (v!=0).if({ AppClock.sched(0, {scribble.play; nil;}); }); });
+		nano.setAction(\stopBt, {|v| (v!=0).if({ AppClock.sched(0, {scribble.stop; nil;}); }); });
+		nano.setAction(\ffwBt, { |v| (v!=0).if({ AppClock.sched(0, {scribble.grow; nil;}); }); });
+	});
 
 
 
