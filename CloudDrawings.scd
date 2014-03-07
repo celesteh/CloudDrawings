@@ -17,7 +17,7 @@ s.waitForBoot({
 	control = Group(s, 'addToTail');
 
 	\NanoKontrol2.asClass.notNil.if({
-		nano = NanoKontrol2.new;
+		nano = \NanoKontrol2.asClass.new;
 	});
 	notify = { |message|
 		Platform.case(
