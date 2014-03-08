@@ -3,12 +3,14 @@
 
 s.waitForBoot({
 	var scribble, bus1, bus2, bus_syn, buf_syn, sources, filt, control, window, default, pulse, blip, scale,
-	playact, stopact, buf, date, channels, should_record, nano, pairs, notify;
+	playact, stopact, buf, date, channels, should_record, nano, pairs, notify, path;
 
 
 
 	channels = 2; // change for more
-	should_record = false;
+	should_record = true;
+	//path = "~/Documents/"; // where recordings should go
+	path =  "/home/celesteh/Documents/inProgress/summer2013tour/sc-symposium/GrainPIC/sounds/"; // where recordings should go
 
 	bus1 = Bus.audio(s, channels);
 	bus2 = Bus.audio(s, channels);
@@ -216,37 +218,49 @@ s.waitForBoot({
 
 	should_record.if({
 
-		var recording_channels, jack_ports, filename;
+		var recording_channels, jack_ports, filename, jack, ffmpeg, ffmpeg_cmd;
 
-		filename = "/home/celesteh/Documents/inProgress/summer2013tour/sc-symposium/GrainPIC/sounds/" ++ // paths
-			Date.getDate.stamp;
+		filename = path ++ Date.getDate.stamp;
 
 		s.recChannels = channels;
 
 		s.prepareForRecord(filename ++ ".aiff");
 		s.sync;
 
+		Platform.case(
+			\linux,     {
 
-		recording_channels = channels.collect({|i| "SuperCollider:out_"++(i+1) }); // all the jack we think we have
-		jack_ports = SCJConnection.getallports.values;
-		recording_channels = recording_channels.select({|i| jack_ports.includes(i.asSymbol)}); // the ones that actually exist
+				jack = \SCJConnection.asClass.notNil;
+
+				jack.if ({
+					recording_channels = channels.collect({|i| "SuperCollider:out_"++(i+1) }); // all the jack we think we have
+					jack_ports = \SCJConnection.asClass.getallports.values;
+					recording_channels = recording_channels.select({|i| jack_ports.includes(i.asSymbol)}); // the ones that actually exist
+				});
 
 
+				ffmpeg = "which ffmpeg".unixCmdGetStdOut.beginsWith("/"); // it exists
 
-		//("echo \"type control-c to stop recording\";" + // reminder
-		//	"/usr/bin/recordmydesktop -o" + filename  ++ ".ogv --channels" + recording_channels.size + "--use-jack") // file name, number of channels
-		//.ccatList(recording_channels).replace(",", "") // get rid of commas between the jack connection names
-		//.postln
-		//.runInTerminal;
-		("ffmpeg -f jack -ac 2 -i ffmpeg -f x11grab -r 30 -s $(xwininfo -root | grep 'geometry' | awk '{print $2;}') -i :0.0 -acodec pcm_s16le -vcodec libx264 -vpre lossless_ultrafast -threads 0" +
-    filename ++ ".mkv"
-        ).runInTerminal;
+				ffmpeg.if({
 
-		0.5.wait;
+					//("echo \"type control-c to stop recording\";" + // reminder
+					//	"/usr/bin/recordmydesktop -o" + filename  ++ ".ogv --channels" + recording_channels.size + "--use-jack") // file name, number of channels
+					//.ccatList(recording_channels).replace(",", "") // get rid of commas between the jack connection names
+					//.postln
+					//.runInTerminal;
 
-		recording_channels.do({|channel, i|
-			("/usr/bin/jack_connect" + channel + "ffmpeg:input_"++(i+1)).postln.unixCmd;
-			//channel.postln;
+					("ffmpeg -f jack -ac 2 -i ffmpeg -f x11grab -r 30 -s $(xwininfo -root | grep 'geometry' | awk '{print $2;}') -i :0.0 -acodec pcm_s16le -vcodec libx264 -vpre lossless_ultrafast -threads 0" +
+						filename ++ ".mkv"
+					).runInTerminal;
+
+					jack.if({
+						0.5.wait;
+						recording_channels.do({|channel, i|
+							("/usr/bin/jack_connect" + channel + "ffmpeg:input_"++(i+1)).postln.unixCmd;
+							//channel.postln;
+						});
+					});
+				});
 		});
 
 		s.record;
