@@ -3,6 +3,11 @@ CloudDrawings
 
 The piece I played at OtherMinds 19
 
+Requirements:
+
+* This piece requires the Conductor quark.
+* It can also optionally use the NanoKontrol2 class https://github.com/celesteh/NanoKontrol2.sc
+
 Howto install:
 
 Put the GrainPIC_Extensions folder into your SuperCollider extensions.  
