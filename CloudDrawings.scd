@@ -8,7 +8,7 @@ s.waitForBoot({
 
 
 	channels = 2; // change for more
-	should_record = true;
+	should_record = false;
 	//path = "~/Documents/"; // where recordings should go
 	path =  "/home/celesteh/Documents/inProgress/summer2013tour/sc-symposium/GrainPIC/sounds/"; // where recordings should go
 
