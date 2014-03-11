@@ -258,6 +258,14 @@ GrainPicCloud {
 	getFreqs { arg x;
 
 
+		^(this.getLinFreqs(x).linexp(low.value, high.value, low.value, high.value));
+	}
+
+
+
+	getLinFreqs { arg x;
+
+
 		// what are the frequency limits for any given X?
 
 		var range, freqRange, his, lows;
@@ -290,6 +298,7 @@ GrainPicCloud {
 		})
 		//^range;
 	}
+
 
 	makeHiLowDivArr {
 
